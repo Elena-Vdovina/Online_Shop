@@ -2,13 +2,9 @@ package com.onlineshop.service;
 
 import com.onlineshop.controller.dto.ProductDTO;
 import com.onlineshop.controller.dto.ProductsDTO;
-import com.onlineshop.domain.Category;
-import com.onlineshop.domain.Country;
 import com.onlineshop.domain.Product;
 import com.onlineshop.domain.Supplier;
 import com.onlineshop.repository.ProductRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,8 +22,6 @@ public class ProductService {
 
     @Autowired
     private SupplierService supplierService;
-
-    static final Logger log = LoggerFactory.getLogger(Supplier.class);
 
     public ProductsDTO findAll() {
         List<Product> products = productRepository.findAll();
@@ -48,17 +42,16 @@ public class ProductService {
     }
 
     public ProductsDTO findByPartDescription(String partDescription) {
-        List<Product> products = productRepository.findByDescriptionLikeIgnoreCase('%'+partDescription+'%');
+        List<Product> products = productRepository.findByDescriptionLikeIgnoreCase('%' + partDescription + '%');
         return ProductsDTO.getInstance(products);
     }
 
-
     public ProductDTO add(ProductDTO productDTO) {
         Product newProduct = new Product();
-        Category category = categoryService.findOrCreateCategoryByName(productDTO.getCategory().getCategoryName());
-        newProduct.setCategory(category);
-        Supplier supplier = supplierService.findOrCreateSupplierByName(productDTO.getSupplier().getSupplierName());
-        newProduct.setSupplier(supplier);
+        //Category category = categoryService.findOrCreateCategoryByName(productDTO.getCategory().getCategoryName());
+        //newProduct.setCategory(category);
+        //Supplier supplier = supplierService.findOrCreateSupplierByName(productDTO.getSupplier().getSupplierName());
+        //newProduct.setSupplier(supplier);
         newProduct.setProductName(productDTO.getProductName());
         newProduct.setDescription(productDTO.getDescription());
         newProduct.setPrice(productDTO.getPrice());
@@ -68,32 +61,31 @@ public class ProductService {
     }
 
     public ProductDTO update(Integer id, ProductDTO productDTO) {
-        Product updProduct = productRepository.findById(id).orElse(null);
-        if (updProduct != null) {
+        Optional<Product> product = productRepository.findById(id);
+        if (product.isPresent()) {
+            Product updProduct = product.get();
             updProduct.setProductName(productDTO.getProductName());
-            Category category = categoryService.findOrCreateCategoryByName(productDTO.getCategory().getCategoryName());
-            updProduct.setCategory(category);
-            Supplier supplier = supplierService.findOrCreateSupplierByName(productDTO.getSupplier().getSupplierName());
-            updProduct.setSupplier(supplier);
+            //Category category = categoryService.findOrCreateCategoryByName(productDTO.getCategory().getCategoryName());
+            //updProduct.setCategory(category);
+            //Supplier supplier = supplierService.findOrCreateSupplierByName(productDTO.getSupplier().getSupplierName());
+            //updProduct.setSupplier(supplier);
             updProduct.setProductName(productDTO.getProductName());
             updProduct.setDescription(productDTO.getDescription());
             updProduct.setPrice(productDTO.getPrice());
             updProduct.setIsDeleted(productDTO.getIsDeleted());
             productRepository.save(updProduct);
-            log.info("product updated: {}", id);
             return productDTO.getInstance(updProduct);
-        }
-        log.error("Product not found, productId={}", id);
-        return null;
+        }return null;
     }
 
     public ProductDTO delete(Integer id) {
-        Product product = productRepository.findById(id).orElse(null);
-        if (product != null) {
-            productRepository.delete(product);
+        Optional<Product> product = productRepository.findById(id);
+        if (product.isPresent()) {
+            Product delProduct = product.get();
+            productRepository.delete(delProduct);
+            return ProductDTO.getInstance(delProduct);
         }
-        log.info("product deleted: {}", id);
-        return ProductDTO.getInstance(product);
+        return null;
     }
 
 }

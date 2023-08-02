@@ -5,22 +5,16 @@ import com.onlineshop.domain.Country;
 import com.onlineshop.repository.CountryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-//import org.modelmapper.ModelMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CountryService {
 
     @Autowired
     private CountryRepository countryRepository;
-
-    static final Logger log = LoggerFactory.getLogger(Country.class);
-
-    //  private final ModelMapper modelMapper;
 
     public List<CountryDTO> findAll() {
         List<Country> countries = countryRepository.findAll();
@@ -30,12 +24,10 @@ public class CountryService {
     }
 
     public CountryDTO findById(Integer id) {
-        Country country = countryRepository.findById(id).orElse(null);
-        if (country != null) {
-            return CountryDTO.getInstance(country); // без маппера
-            // return modelMapper.map(country,CountryDTO.class); // с маппером
+        Optional<Country> country = countryRepository.findById(id);
+        if (country.isPresent()) {
+            return CountryDTO.getInstance(country.get());
         }
-        log.error("Country not found countryId: {}", id);
         return null;
     }
 
@@ -47,34 +39,34 @@ public class CountryService {
     }
 
     public CountryDTO update(Integer id, CountryDTO countryDTO) {
-        Country updCountry = countryRepository.findById(id).orElse(null);
-        if (updCountry != null) {
+        Optional<Country> country = countryRepository.findById(id);
+        if (country.isPresent()) {
+            Country updCountry = country.get();
             updCountry.setCountryName(countryDTO.getCountryName());
             countryRepository.save(updCountry);
-            log.info("Country updated: {}", id);
             return CountryDTO.getInstance(updCountry);
         }
-        log.error("Country not found, countryId={}", id);
         return null;
     }
 
     public CountryDTO delete(Integer id) {
-        Country country = countryRepository.findById(id).orElse(null);
-        if (country != null) {
-            countryRepository.delete(country);
+        Optional<Country> country = countryRepository.findById(id);
+        if (country.isPresent()) {
+            Country delCountry = country.get();
+            countryRepository.delete(delCountry);
+            return CountryDTO.getInstance(delCountry);
         }
-        log.info("Country deleted: {}", id);
-        return CountryDTO.getInstance(country);
+        return null;
     }
 
     public Country findOrCreateCountryByName(String name){
-        Country country = countryRepository.findByName(name);
+        Country country = countryRepository.findByCountryName(name);
         if (country == null) {
             country = new Country();
             country.setCountryName(name);
             countryRepository.save(country);
-            log.info("Country added: {}", country);
         }
         return country;
     }
+
 }

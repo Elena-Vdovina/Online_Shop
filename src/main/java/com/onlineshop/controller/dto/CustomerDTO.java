@@ -1,6 +1,5 @@
 package com.onlineshop.controller.dto;
 
-import com.onlineshop.domain.Country;
 import com.onlineshop.domain.Customer;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -4,13 +4,12 @@ import com.onlineshop.controller.dto.SupplierDTO;
 import com.onlineshop.domain.Country;
 import com.onlineshop.domain.Supplier;
 import com.onlineshop.repository.SupplierRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class SupplierService {
@@ -21,10 +20,6 @@ public class SupplierService {
     @Autowired
     private CountryService countryService;
 
-    static final Logger log = LoggerFactory.getLogger(Supplier.class);
-
-    //  private final ModelMapper modelMapper;
-
     public List<SupplierDTO> findAll() {
         List<Supplier> suppliers = supplierRepository.findAll();
         List<SupplierDTO> result = new ArrayList<>();
@@ -33,12 +28,10 @@ public class SupplierService {
     }
 
     public SupplierDTO findById(Integer id) {
-        Supplier supplier = supplierRepository.findById(id).orElse(null);
-        if (supplier != null) {
-            return SupplierDTO.getInstance(supplier); // без маппера
-            // return modelMapper.map(Supplier,SupplierDTO.class); // с маппером
+        Optional<Supplier> supplier = supplierRepository.findById(id);
+        if (supplier.isPresent()) {
+            return SupplierDTO.getInstance(supplier.get());
         }
-        log.error("Supplier not found supplierId: {}", id);
         return null;
     }
 
@@ -53,42 +46,27 @@ public class SupplierService {
     }
 
     public SupplierDTO update(Integer id, SupplierDTO supplierDTO) {
-        Supplier updSupplier = supplierRepository.findById(id).orElse(null);
-        if (updSupplier != null) {
+        Optional<Supplier> supplier = supplierRepository.findById(id);
+        if (supplier.isPresent()) {
+            Supplier updSupplier = supplier.get();
             updSupplier.setSupplierName(supplierDTO.getSupplierName());
             updSupplier.setAddress(supplierDTO.getAddress());
             Country country = countryService.findOrCreateCountryByName(supplierDTO.getCountry().getCountryName());
             updSupplier.setCountry(country);
             supplierRepository.save(updSupplier);
-            log.info("Supplier updated: {}", id);
             return SupplierDTO.getInstance(updSupplier);
         }
-        log.error("Supplier not found, supplierId={}", id);
         return null;
     }
 
     public SupplierDTO delete(Integer id) {
-        Supplier supplier = supplierRepository.findById(id).orElse(null);
-        if (supplier != null) {
-            supplierRepository.delete(supplier);
+        Optional<Supplier> supplier = supplierRepository.findById(id);
+        if (supplier.isPresent()) {
+            Supplier delSupplier = supplier.get();
+            supplierRepository.delete(delSupplier);
+            return SupplierDTO.getInstance(delSupplier);
         }
-        log.info("Supplier deleted: {}", id);
-        return SupplierDTO.getInstance(supplier);
-    }
-/*
-    public SupplierDTO findOrCreateSupplierByName(String name){
-        Supplier supplier = supplierRepository.findByName(name);
-        if (supplier == null) {
-            supplier = new Supplier();
-            supplier.getSupplierName(name);
-            supplier.setAddress("");
-            Country country = countryService.findOrCreateCountryByName(supplierDTO.getCountry().getCountryName());
-            supplier.setCountry(country);
-            supplierRepository.save(supplier);
-            log.info("Country added: {}", supplier);
-        }
-        return supplier;
+        return null;
     }
 
- */
 }

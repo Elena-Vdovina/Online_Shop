@@ -1,7 +1,5 @@
 package com.onlineshop.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,7 +16,6 @@ import javax.persistence.ManyToOne;
 @Setter
 @Getter
 @NoArgsConstructor
-//@JsonIgnoreProperties({"hibernateLazyInitializer","nandler"})
 public class Product {
 
     @Id
