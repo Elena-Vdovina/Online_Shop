@@ -1,0 +1,6 @@
+category_id,supplier_id,product_name,description,price,is_deleted
+2,1,Ford Focus,Ford Focus Wagoon2,25000,false
+1,2,Mercedes A160,Mercedes A160,28000,false
+1,3,Peugeot 206,Peugeot 206,26000,false
+1,4,Skoda Fabia,Skoda Fabia,23000,false
+3,5,Toyota Hybrid, Toyota Hybrid,30000,false
