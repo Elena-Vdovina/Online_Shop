@@ -2,15 +2,20 @@ package com.onlineshop.service;
 
 import com.onlineshop.controller.dto.ProductDTO;
 import com.onlineshop.controller.dto.ProductsDTO;
+import com.onlineshop.domain.Category;
 import com.onlineshop.domain.Product;
 import com.onlineshop.domain.Supplier;
+import com.onlineshop.repository.CategoryRepository;
 import com.onlineshop.repository.ProductRepository;
+import com.onlineshop.repository.SupplierRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class ProductService {
 
@@ -18,64 +23,93 @@ public class ProductService {
     private ProductRepository productRepository;
 
     @Autowired
-    private CategoryService categoryService;
+    private CategoryRepository categoryRepository;
 
     @Autowired
-    private SupplierService supplierService;
+    private SupplierRepository supplierRepository;
 
     public ProductsDTO findAll() {
         List<Product> products = productRepository.findAll();
+        log.info("Found list of products");
         return ProductsDTO.getInstance(products);
     }
 
     public ProductDTO findById(Integer id) {
         Optional<Product> product = productRepository.findById(id);
         if (product.isPresent()) {
+            log.info("Found Product productId: {} by id", id);
             return ProductDTO.getInstance(product.get());
         }
+        log.error("Not found Product productId: {}", id);
         return null;
     }
 
     public ProductsDTO findByCategoryId(Integer categoryId) {
         List<Product> products = productRepository.findByCategoryId(categoryId);
+        log.info("Found list of products by Category categoryId: {}", categoryId);
         return ProductsDTO.getInstance(products);
     }
 
     public ProductsDTO findByPartDescription(String partDescription) {
         List<Product> products = productRepository.findByDescriptionLikeIgnoreCase('%' + partDescription + '%');
+        log.info("Found list of products by part description");
         return ProductsDTO.getInstance(products);
     }
 
     public ProductDTO add(ProductDTO productDTO) {
         Product newProduct = new Product();
-        //Category category = categoryService.findOrCreateCategoryByName(productDTO.getCategory().getCategoryName());
-        //newProduct.setCategory(category);
-        //Supplier supplier = supplierService.findOrCreateSupplierByName(productDTO.getSupplier().getSupplierName());
-        //newProduct.setSupplier(supplier);
+        Integer categoryId = productDTO.getCategory().getCategoryId();
+        Optional<Category> category = categoryRepository.findById(categoryId);
+        if (category.isEmpty()) {
+            log.error("Not found for add Product Category categoryId: {}", categoryId);
+            return null;
+        }
+        newProduct.setCategory(category.get());
+        Integer supplierId = productDTO.getSupplier().getSupplierId();
+        Optional<Supplier> supplier = supplierRepository.findById(supplierId);
+        if (supplier.isEmpty()) {
+            log.error("Not found for add Product Supplier supplierId: {}", supplierId);
+            return null;
+        }
+        newProduct.setSupplier(supplier.get());
         newProduct.setProductName(productDTO.getProductName());
         newProduct.setDescription(productDTO.getDescription());
         newProduct.setPrice(productDTO.getPrice());
-        newProduct.setIsDeleted(productDTO.getIsDeleted());
+        newProduct.setIsDeleted(productDTO.getIsDeleted());// (или false)
         newProduct = productRepository.save(newProduct);
-        return productDTO.getInstance(newProduct);
+        log.info("Product added successfully productId: {}", newProduct.getProductId());
+        return ProductDTO.getInstance(newProduct);
     }
 
     public ProductDTO update(Integer id, ProductDTO productDTO) {
         Optional<Product> product = productRepository.findById(id);
-        if (product.isPresent()) {
-            Product updProduct = product.get();
-            updProduct.setProductName(productDTO.getProductName());
-            //Category category = categoryService.findOrCreateCategoryByName(productDTO.getCategory().getCategoryName());
-            //updProduct.setCategory(category);
-            //Supplier supplier = supplierService.findOrCreateSupplierByName(productDTO.getSupplier().getSupplierName());
-            //updProduct.setSupplier(supplier);
-            updProduct.setProductName(productDTO.getProductName());
-            updProduct.setDescription(productDTO.getDescription());
-            updProduct.setPrice(productDTO.getPrice());
-            updProduct.setIsDeleted(productDTO.getIsDeleted());
-            productRepository.save(updProduct);
-            return productDTO.getInstance(updProduct);
-        }return null;
+        if (product.isEmpty()) {
+            log.error("Not found for update Product productId: {}", productDTO.getProductId());
+            return null;
+        }
+        Product updProduct = product.get();
+        updProduct.setProductName(productDTO.getProductName());
+        Integer categoryId = productDTO.getCategory().getCategoryId();
+        Optional<Category> category = categoryRepository.findById(categoryId);
+        if (category.isEmpty()) {
+            log.error("Not found for update Product Category categoryId: {} ", categoryId);
+            return null;
+        }
+        updProduct.setCategory(category.get());
+        Integer supplierId = productDTO.getSupplier().getSupplierId();
+        Optional<Supplier> supplier = supplierRepository.findById(supplierId);
+        if (supplier.isEmpty()) {
+            log.error("Not found for update Product Supplier supplierId: {} ", supplierId);
+            return null;
+        }
+        updProduct.setSupplier(supplier.get());
+        updProduct.setProductName(productDTO.getProductName());
+        updProduct.setDescription(productDTO.getDescription());
+        updProduct.setPrice(productDTO.getPrice());
+        updProduct.setIsDeleted(productDTO.getIsDeleted());
+        productRepository.save(updProduct);
+        log.info("Product updated successfully productId: {} ", productDTO.getProductId());
+        return ProductDTO.getInstance(updProduct);
     }
 
     public ProductDTO delete(Integer id) {
@@ -83,8 +117,10 @@ public class ProductService {
         if (product.isPresent()) {
             Product delProduct = product.get();
             productRepository.delete(delProduct);
+            log.info("Product deleted successfully productId: {}", id);
             return ProductDTO.getInstance(delProduct);
         }
+        log.error("Product for delete not found productId: {}", id);
         return null;
     }
 
