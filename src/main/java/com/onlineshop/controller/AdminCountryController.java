@@ -33,7 +33,7 @@ public class AdminCountryController {
     public ResponseEntity<CountryDTO> addCountry(@RequestBody CountryDTO countryDTO) {
         CountryDTO country = countryService.add(countryDTO);
         if (country == null) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.unprocessableEntity().build();
         }
         return ResponseEntity.ok(country);
     }

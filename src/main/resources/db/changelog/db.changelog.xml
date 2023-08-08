@@ -110,7 +110,7 @@
                                  referencedColumnNames="country_id"/>
 
     </changeSet>
-
+<!--
     <changeSet id="2" author="elena">
         <loadData tableName="countries"
                   separator=","
@@ -141,7 +141,7 @@
                   file="db/data/customers.csv">
         </loadData>
     </changeSet>
-
+-->
     <!--
 
  from: https://www.w3schools.com/sql/trysql.asp?filename=trysql_select_all

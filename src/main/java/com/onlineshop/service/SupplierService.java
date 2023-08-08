@@ -42,17 +42,10 @@ public class SupplierService {
     }
 
     public SupplierDTO add(SupplierDTO supplierDTO) {
-        Supplier newSupplier = new Supplier();
-        newSupplier.setSupplierName(supplierDTO.getSupplierName());
-        newSupplier.setAddress(supplierDTO.getAddress());
-        Integer countryId = supplierDTO.getCountry().getCountryId();
-        Optional<Country> country = countryRepository.findById(countryId);
-        if (country.isEmpty()) {
-            log.error("Not found for add Supplier Country countryId: {}", countryId);
+        Supplier newSupplier = newOrUpdateSupplier(new Supplier(), supplierDTO);
+        if (newSupplier == null) {
             return null;
         }
-        newSupplier.setCountry(country.get());
-        newSupplier = supplierRepository.save(newSupplier);
         log.info("Supplier added successfully supplierId: {}", newSupplier.getSupplierId());
         return SupplierDTO.getInstance(newSupplier);
     }
@@ -60,22 +53,28 @@ public class SupplierService {
     public SupplierDTO update(Integer id, SupplierDTO supplierDTO) {
         Optional<Supplier> supplier = supplierRepository.findById(id);
         if (supplier.isPresent()) {
-            Supplier updSupplier = supplier.get();
-            updSupplier.setSupplierName(supplierDTO.getSupplierName());
-            updSupplier.setAddress(supplierDTO.getAddress());
-            Integer countryId = supplierDTO.getCountry().getCountryId();
-            Optional<Country> country = countryRepository.findById(countryId);
-            if (country.isEmpty()) {
-                log.error("Not found for update Supplier Country countryId: {}", countryId);
+            Supplier updSupplier = newOrUpdateSupplier(supplier.get(), supplierDTO);
+            if (updSupplier == null) {
                 return null;
             }
-            updSupplier.setCountry(country.get());
-            supplierRepository.save(updSupplier);
             log.info("Supplier updated successfully supplierId: {}", id);
             return SupplierDTO.getInstance(updSupplier);
         }
         log.error("Not found for update Supplier supplierId: {}", id);
         return null;
+    }
+
+    private Supplier newOrUpdateSupplier(Supplier supplier, SupplierDTO supplierDTO) {
+        supplier.setSupplierName(supplierDTO.getSupplierName());
+        supplier.setAddress(supplierDTO.getAddress());
+        Integer countryId = supplierDTO.getCountry().getCountryId();
+        Optional<Country> country = countryRepository.findById(countryId);
+        if (country.isEmpty()) {
+            log.error("Not found for add/update Supplier Country countryId: {}", countryId);
+            return null;
+        }
+        supplier.setCountry(country.get());
+        return supplierRepository.save(supplier);
     }
 
     public SupplierDTO delete(Integer id) {

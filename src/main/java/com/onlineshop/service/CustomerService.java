@@ -42,17 +42,10 @@ public class CustomerService {
     }
 
     public CustomerDTO add(CustomerDTO customerDTO) {
-        Customer newCustomer = new Customer();
-        newCustomer.setCustomerName(customerDTO.getCustomerName());
-        newCustomer.setAddress(customerDTO.getAddress());
-        Integer countryId = customerDTO.getCountry().getCountryId();
-        Optional<Country> country = countryRepository.findById(countryId);
-        if (country.isEmpty()){
-            log.error("Not found for add Customer Country countryId: {} ", countryId);
+        Customer newCustomer = newOrUpdateCustomer(new Customer(), customerDTO);
+        if (newCustomer == null) {
             return null;
         }
-        newCustomer.setCountry(country.get());
-        newCustomer = customerRepository.save(newCustomer);
         log.info("Customer added customerId: {}", newCustomer.getCustomerId());
         return CustomerDTO.getInstance(newCustomer);
     }
@@ -60,22 +53,28 @@ public class CustomerService {
     public CustomerDTO update(Integer id, CustomerDTO customerDTO) {
         Optional<Customer> customer = customerRepository.findById(id);
         if (customer.isPresent()) {
-            Customer updCustomer = customer.get();
-            updCustomer.setCustomerName(customerDTO.getCustomerName());
-            updCustomer.setAddress(customerDTO.getAddress());
-            Integer countryId = customerDTO.getCountry().getCountryId();
-            Optional<Country> country = countryRepository.findById(countryId);
-            if (country.isEmpty()){
-                log.error("Not found for update Customer Country countryId: {} ", countryId);
+            Customer updCustomer = newOrUpdateCustomer(customer.get(), customerDTO);
+            if (updCustomer == null) {
                 return null;
             }
-            updCustomer.setCountry(country.get());
-            customerRepository.save(updCustomer);
             log.info("Customer updated customerId: {}", updCustomer.getCustomerId());
             return CustomerDTO.getInstance(updCustomer);
         }
         log.error("Not found for update Customer customerId: {}", id);
         return null;
+    }
+
+    private Customer newOrUpdateCustomer(Customer customer, CustomerDTO customerDTO) {
+        customer.setCustomerName(customerDTO.getCustomerName());
+        customer.setAddress(customerDTO.getAddress());
+        Integer countryId = customerDTO.getCountry().getCountryId();
+        Optional<Country> country = countryRepository.findById(countryId);
+        if (country.isEmpty()) {
+            log.error("Not found for add/update Customer Country countryId: {} ", countryId);
+            return null;
+        }
+        customer.setCountry(country.get());
+        return customerRepository.save(customer);
     }
 
     public CustomerDTO delete(Integer id) {

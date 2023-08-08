@@ -33,7 +33,7 @@ public class AdminSupplierController {
     public ResponseEntity<SupplierDTO> addSupplier(@RequestBody SupplierDTO supplierDTO) {
         SupplierDTO supplier = supplierService.add(supplierDTO);
         if (supplier == null) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.unprocessableEntity().build();
         }
         return ResponseEntity.ok(supplier);
     }

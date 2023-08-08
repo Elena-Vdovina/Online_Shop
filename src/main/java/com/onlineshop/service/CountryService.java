@@ -37,6 +37,11 @@ public class CountryService {
     }
 
     public CountryDTO add(CountryDTO countryDTO) {
+        List<Country> countries = countryRepository.findByCountryNameIgnoreCase(countryDTO.getCountryName());
+        if (!countries.isEmpty()){
+            log.info("Duplicate Name of Country: {}", countryDTO.getCountryName());
+            return null;
+        }
         Country newCountry = new Country();
         newCountry.setCountryName(countryDTO.getCountryName());
         newCountry = countryRepository.save(newCountry);

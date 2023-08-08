@@ -57,26 +57,10 @@ public class ProductService {
     }
 
     public ProductDTO add(ProductDTO productDTO) {
-        Product newProduct = new Product();
-        Integer categoryId = productDTO.getCategory().getCategoryId();
-        Optional<Category> category = categoryRepository.findById(categoryId);
-        if (category.isEmpty()) {
-            log.error("Not found for add Product Category categoryId: {}", categoryId);
+        Product newProduct = newOrUpdateProduct(new Product(), productDTO);
+        if (newProduct == null) {
             return null;
         }
-        newProduct.setCategory(category.get());
-        Integer supplierId = productDTO.getSupplier().getSupplierId();
-        Optional<Supplier> supplier = supplierRepository.findById(supplierId);
-        if (supplier.isEmpty()) {
-            log.error("Not found for add Product Supplier supplierId: {}", supplierId);
-            return null;
-        }
-        newProduct.setSupplier(supplier.get());
-        newProduct.setProductName(productDTO.getProductName());
-        newProduct.setDescription(productDTO.getDescription());
-        newProduct.setPrice(productDTO.getPrice());
-        newProduct.setIsDeleted(productDTO.getIsDeleted());// (или false)
-        newProduct = productRepository.save(newProduct);
         log.info("Product added successfully productId: {}", newProduct.getProductId());
         return ProductDTO.getInstance(newProduct);
     }
@@ -87,29 +71,35 @@ public class ProductService {
             log.error("Not found for update Product productId: {}", productDTO.getProductId());
             return null;
         }
-        Product updProduct = product.get();
-        updProduct.setProductName(productDTO.getProductName());
+        Product updProduct = newOrUpdateProduct(product.get(), productDTO);
+        if (updProduct == null) {
+            return null;
+        }
+        log.info("Product updated successfully productId: {} ", productDTO.getProductId());
+        return ProductDTO.getInstance(updProduct);
+    }
+
+    private Product newOrUpdateProduct(Product product, ProductDTO productDTO) {
+        product.setProductName(productDTO.getProductName());
         Integer categoryId = productDTO.getCategory().getCategoryId();
         Optional<Category> category = categoryRepository.findById(categoryId);
         if (category.isEmpty()) {
-            log.error("Not found for update Product Category categoryId: {} ", categoryId);
+            log.error("Not found for add/update Product Category categoryId: {} ", categoryId);
             return null;
         }
-        updProduct.setCategory(category.get());
+        product.setCategory(category.get());
         Integer supplierId = productDTO.getSupplier().getSupplierId();
         Optional<Supplier> supplier = supplierRepository.findById(supplierId);
         if (supplier.isEmpty()) {
-            log.error("Not found for update Product Supplier supplierId: {} ", supplierId);
+            log.error("Not found for add/update Product Supplier supplierId: {} ", supplierId);
             return null;
         }
-        updProduct.setSupplier(supplier.get());
-        updProduct.setProductName(productDTO.getProductName());
-        updProduct.setDescription(productDTO.getDescription());
-        updProduct.setPrice(productDTO.getPrice());
-        updProduct.setIsDeleted(productDTO.getIsDeleted());
-        productRepository.save(updProduct);
-        log.info("Product updated successfully productId: {} ", productDTO.getProductId());
-        return ProductDTO.getInstance(updProduct);
+        product.setSupplier(supplier.get());
+        product.setProductName(productDTO.getProductName());
+        product.setDescription(productDTO.getDescription());
+        product.setPrice(productDTO.getPrice());
+        product.setIsDeleted(productDTO.getIsDeleted());
+        return productRepository.save(product);
     }
 
     public ProductDTO delete(Integer id) {
