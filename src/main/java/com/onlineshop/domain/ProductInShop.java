@@ -18,7 +18,7 @@ public class ProductInShop {
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Shop.class)
     @JoinColumn(name = "shopId", nullable = false)
-    private Shop shopId;
+    private Shop shop;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Product.class)
     @JoinColumn(name = "productId", nullable = false)
